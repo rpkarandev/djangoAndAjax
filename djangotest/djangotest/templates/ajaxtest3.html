@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+        {% block loadfiles %}
+	{% endblock %}
+
+	{% block content %}
+	<h2>Test file chunkupload</h2>
+	<br>
+	<div style="padding:10px;">
+	<form>
+		{% csrf_token %}
+		<div>{{ form.thefile }}</div><br>
+		<div>{{ form.uploadid }}</div><br>
+		 <div class="progress">  
+	 	<div class="progress-bar progress-bar-info" role="progressbar" aria-valuenow="50" id="progressbar" aria-valuemin="10" aria-valuemax="100" style="width:0%"> 0% uploaded</div>
+		</div>
+	</form>
+	<p id="messages"> log messages: </p>
+	</div>
+	{% endblock %}
+
+
+        {% block javscript %}
+		<script>
+                var uploadid = '-1' ;
+		var posturl1 = "{% url 'post_chunkfileupload' %}";
+		var posturl2 = "{% url 'post_chunkfileupload_complete' %}";
+		var chunk=0, chunks_sent = 0, chunks=-1;
+		function postchunkfile(posturl, fileuploadid, filedata, chunkstatus, asyncstatus) {
+                        //alert('fileuploadid ' + fileuploadid)
+			var form = new FormData();			
+			form.append('thefile', filedata);
+			form.append('uploadid', fileuploadid);
+			form.append('chunkstatus', chunkstatus); 
+			form.append('csrfmiddlewaretoken', '{{ csrf_token }}'); //not necessary, already handled in base javascript
+			//var form = new FormData(jQuery('form')[0]);
+			//var form = $(jQuery('form')[0]).serialize();
+			// make POST ajax call
+			$.ajax({
+			    type: 'POST',
+			    url: posturl,
+  			    //prevent jQuery from automatically transforming the data into a query string
+       		            processData: false,
+			    // dont detect contenttype
+			    contentType: false,
+			    cache: false,
+			    async: asyncstatus,
+			    //mimeType: 'multipart/form-data',
+			    data: form,
+			    done: function (response) {
+				console.log('done'); alert('done');
+			    },
+			    success: function (response) {
+				// display log
+				// display log
+				uploadid = response["uploadid"];
+                                //alert(uploadid)
+				$("#messages").append( '<br>file sent ' + uploadid )
+				console.log( '<br>file sent ' + uploadid  );
+                                if (chunkstatus != 'complete_'+chunks){
+				chunks_sent = chunks_sent + 1;
+			        var progress = Math.round(chunks_sent / chunks * 100);
+				$("#progressbar").css("width", progress +'%').attr("aria-valuenow", progress ).text(progress + "% uploaded");
+				if (chunks_sent == chunks){ postchunkfile(posturl2, uploadid, '', 'complete_'+chunks, true); }
+				}
+			    },
+			    error: function (response) {
+				// alert the error if any error occured
+				console.log('error '  + response["error"]);
+			    }
+		})
+	   };
+
+		    $("#id_thefile").change(function (e) {
+			// preventing from page reload and default actions
+			e.preventDefault();
+                          uploadid = '-1';
+			  var file = $('#id_thefile')[0].files[0];
+			  var chunkSize = 100 * 1024;
+			  var fileSize = file.size;
+			  chunks = Math.ceil(file.size/chunkSize,chunkSize);
+			  chunk = 0;
+			  chunks_sent = 0;
+			  //console.log('file size..',fileSize);
+			  //console.log('chunks...',chunks);
+			  while (chunk < chunks) {
+			      var offset = chunk*chunkSize;
+			      //console.log('current chunk..', chunk);
+			      //console.log('offset...', chunk*chunkSize);
+			      console.log('file blob from offset...', offset);
+			      filechunk = file.slice(offset,offset+chunkSize);
+			      //console.log(filechunk);
+   			      nformid = chunk + '_' + uploadid ;
+			      //alert(uploadid + ' ' +  chunk)
+			  //reader = new FileReader();
+			  //reader.onload = function(event){
+			      if ( chunk == chunks-1) {
+			      postchunkfile(posturl1, nformid, filechunk, 'done', false); }
+			      else if ( chunk == 0) {
+			      postchunkfile(posturl1, nformid, filechunk, 'start', false); }
+			      else {
+			      postchunkfile(posturl1, nformid, filechunk, 'continue', true); }
+			  //}; reader.readAsDataURL(filechunk);
+			      chunk++;
+                              setTimeout('', 100)
+			  };
+
+		    });
+		</script>
+
+	{% endblock %}
+

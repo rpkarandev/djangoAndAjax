@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+        {% block loadfiles %}
+	{% endblock %}
+
+	{% block content %}
+	<h2>Test repeated ajax communications</h2>
+	<br>
+	<div style="padding:10px;">
+	<form>
+		{% csrf_token %}
+		<input type="button" name="starttalk" id="id_starttalk" value="Click start conversation" />
+	</form>
+	<p id="messages"> log messages: </p>
+	</div>
+	{% endblock %}
+
+
+        {% block javscript %}
+		<script>
+		function starttalk(i, ilimit) {
+			var serializedData = {'data': JSON.stringify({'msg': 'add the numbers','i': i} ) };
+			// make POST ajax call
+			$.ajax({
+			    type: 'POST',
+			    url: "{% url 'post_talk' %}",
+			    data: serializedData,
+			    success: function (response) {
+				// display log
+				var rdata = response["data"];
+        			var ii = rdata['i']
+				$("#messages").append( '<br> sent i  :  '+ i  )
+				$("#messages").append( ', response i  :  ' + ii  )
+				if ( ii < ilimit ) { starttalk( ii, ilimit ); } else { alert(ilimit + ' reached')}
+			    },
+			    error: function (response) {
+				// alert the error if any error occured
+				console.log('error ' + response["error"]);
+			    }
+			})
+		   };
+
+		    $("#id_starttalk").click(  function(e){
+			e.preventDefault();
+			starttalk(0, 100) ;
+		    });
+
+		</script>
+
+	{% endblock %}
+

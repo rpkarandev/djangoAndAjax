@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+        {% block loadfiles %}
+	{% endblock %}
+
+	{% block content %}
+	<h2>Test file upload</h2>
+	<br>
+	<div style="padding:10px;">
+	<form>
+		{% csrf_token %}
+		<div>{{ form.thefile }}</div><br>
+		<div>{{ form.uploadid }}</div><br>
+		<!-- input type="button" name="starttalk" id="id_starttalk" value="Click start conversation" /-->
+	</form>
+	<p id="messages"> log messages: </p>
+	</div>
+	{% endblock %}
+
+
+        {% block javscript %}
+		<script>
+		var uploadid = -1;
+		function postfile(fileuploadid, filedata) {
+			var form = new FormData();			
+			form.append('thefile', filedata);
+			form.append('uploadid', fileuploadid);
+			form.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+			// make POST ajax call
+			$.ajax({
+			    type: 'POST',
+			    url: "{% url 'post_fileupload' %}",
+  			    //prevent jQuery from automatically transforming the data into a query string
+       		            processData: false,
+			    // dont detect contenttype
+			    contentType: false,
+			    cache: false,
+			    //mimeType: 'multipart/form-data',
+			    data: form,
+			    success: function (response) {
+				// display log
+				uploadid = response["uploadid"];
+				$("#messages").append( '<br>file sent ' + uploadid )
+			    },
+			    error: function (response) {
+				// alert the error if any error occured
+				console.log('error '  + response["error"]);
+			    }
+		})
+	   };
+
+		    $("#id_thefile").change(function (e) {
+			// preventing from page reload and default actions
+			e.preventDefault();
+			postfile(uploadid, $("#id_thefile")[0].files[0]);
+		    });
+		</script>
+
+	{% endblock %}
+

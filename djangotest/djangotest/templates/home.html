@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+        {% block loadfiles %}
+	{% endblock %}
+
+	{% block content %}
+	<h3> Ajax-Django tests/exercises <h3>
+	<br>
+	<ol>
+	<li> <a href="{% url 'ajaxtest1' %}"> Ajaxtest 1 - to and fro communications</a> </li>
+	<li> <a href="{% url 'ajaxtest2' %}"> Ajaxtest 2 - file upload</a> </li>
+	<li> <a href="{% url 'ajaxtest3' %}"> Ajaxtest 3 - file chunkupload</a> </li>
+	<ol>
+	{% endblock %}
+
+
+        {% block javscript %}
+	{% endblock %}
