@@ -8,3 +8,12 @@ Here are few simple exercises showing implementation of ajax along with Django.
 ## My story 
 The story started with myself building a website to upload multiple files as chunks using Django. Unfortunately, existing respos did not help me much. Wasted few days! I started building step by step. Hope the repo will be useful to someone looking for a solution.
 
+
+## System configuration
+- Apache 2.2
+- modWSGI
+- Python 3.5
+- Django 2.0
+
+### Caution
+Repeated file upload request may overwhelm and load your db. Leads to dblock error especially if you are using sqlite. Adjust the time between the requests accordingly.
